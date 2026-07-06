@@ -3,6 +3,7 @@ package com.infosys.cfootprint.service;
 import com.infosys.cfootprint.dto.AdminActivityAnalyticsResponse;
 import com.infosys.cfootprint.dto.AdminUserAnalyticsResponse;
 import com.infosys.cfootprint.dto.CategoryBreakdownDTO;
+import com.infosys.cfootprint.dto.TrendDTO;
 import com.infosys.cfootprint.model.ActivityLog;
 import com.infosys.cfootprint.repository.ActivityLogRepository;
 import com.infosys.cfootprint.repository.UserRepository;
@@ -25,6 +26,9 @@ public class AdminAnalyticsService {
     @Autowired
     private ActivityLogRepository activityLogRepository;
 
+    @Autowired
+    private ActivityLogService activityLogService;
+
     public AdminUserAnalyticsResponse getUserAnalytics() {
         long total = userRepository.count();
         long enabled = userRepository.findAll().stream().filter(u -> u.isEnabled()).count();
@@ -37,7 +41,7 @@ public class AdminAnalyticsService {
                 .build();
     }
 
-    public AdminActivityAnalyticsResponse getPlatformActivityAnalytics() {
+    public AdminActivityAnalyticsResponse getPlatformActivityAnalytics(String range) {
         LocalDate today = LocalDate.now();
         List<ActivityLog> allLogs = activityLogRepository.findAll();
 
@@ -63,11 +67,14 @@ public class AdminAnalyticsService {
                     .build());
         }
 
+        List<TrendDTO> trend = activityLogService.calculateTrend(allLogs, range);
+
         return AdminActivityAnalyticsResponse.builder()
                 .totalLogs(totalLogs)
                 .logsLoggedToday(logsToday)
                 .totalCo2EmissionKgs(Math.round(totalCo2 * 100.0) / 100.0)
                 .categoryBreakdown(breakdown)
+                .trend(trend)
                 .build();
     }
 }

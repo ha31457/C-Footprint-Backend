@@ -39,7 +39,8 @@ public class AdminController {
     }
 
     @GetMapping("/activities")
-    public ResponseEntity<AdminActivityAnalyticsResponse> getActivityAnalytics() {
-        return ResponseEntity.ok(adminAnalyticsService.getPlatformActivityAnalytics());
+    public ResponseEntity<AdminActivityAnalyticsResponse> getActivityAnalytics(
+            @RequestParam(required = false, defaultValue = "daily") String range) {
+        return ResponseEntity.ok(adminAnalyticsService.getPlatformActivityAnalytics(range));
     }
 }

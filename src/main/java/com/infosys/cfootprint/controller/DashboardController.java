@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -23,11 +24,14 @@ public class DashboardController {
     private UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<UserDashboardResponse> getUserDashboard(Authentication authentication) {
+    public ResponseEntity<UserDashboardResponse> getUserDashboard(
+            Authentication authentication,
+            @RequestParam(required = false, defaultValue = "daily") String range) {
+        
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found in database"));
         
-        return ResponseEntity.ok(activityLogService.getUserDashboardData(user));
+        return ResponseEntity.ok(activityLogService.getUserDashboardData(user, range));
     }
 }

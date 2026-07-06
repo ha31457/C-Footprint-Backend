@@ -58,7 +58,7 @@ public class ActivityLogService {
                 .collect(Collectors.toList());
     }
 
-    public UserDashboardResponse getUserDashboardData(User user) {
+    public UserDashboardResponse getUserDashboardData(User user, String range) {
         LocalDate today = LocalDate.now();
 
         // 1. Today's emission
@@ -90,7 +90,7 @@ public class ActivityLogService {
                     .build());
         }
 
-        // 3. Weekly Trend (Last 7 days, including today)
+        // 3. Weekly Trend (Last 7 days, including today) - Keep for backward compatibility
         LocalDate startDate = today.minusDays(6);
         List<ActivityLog> weeklyLogs = activityLogRepository.findByUserAndLogDateBetweenOrderByLogDateAsc(user, startDate, today);
         Map<LocalDate, Double> dailySums = weeklyLogs.stream()
@@ -99,20 +99,120 @@ public class ActivityLogService {
                         Collectors.summingDouble(ActivityLog::getCo2Emission)
                 ));
 
-        List<WeeklyTrendDTO> trend = new ArrayList<>();
+        List<WeeklyTrendDTO> weeklyTrend = new ArrayList<>();
         for (int i = 6; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
-            trend.add(WeeklyTrendDTO.builder()
+            weeklyTrend.add(WeeklyTrendDTO.builder()
                     .date(date)
                     .co2Emission(Math.round(dailySums.getOrDefault(date, 0.0) * 100.0) / 100.0)
                     .build());
         }
 
+        // 4. Generic Multi-Range Trend
+        List<TrendDTO> trend = calculateTrend(allLogs, range);
+
         return UserDashboardResponse.builder()
                 .todayTotalEmission(Math.round(todayTotal * 100.0) / 100.0)
                 .categoryBreakdown(breakdown)
-                .weeklyTrend(trend)
+                .weeklyTrend(weeklyTrend)
+                .trend(trend)
                 .build();
+    }
+
+    public List<TrendDTO> calculateTrend(List<ActivityLog> logs, String range) {
+        LocalDate today = LocalDate.now();
+        List<TrendDTO> trend = new ArrayList<>();
+
+        if (range == null) {
+            range = "daily";
+        }
+        range = range.toLowerCase();
+
+        switch (range) {
+            case "weekly":
+                LocalDate currentMonday = today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+                List<LocalDate> mondays = new ArrayList<>();
+                for (int i = 3; i >= 0; i--) {
+                    mondays.add(currentMonday.minusWeeks(i));
+                }
+
+                Map<LocalDate, Double> weeklySums = new HashMap<>();
+                for (ActivityLog log : logs) {
+                    LocalDate logMonday = log.getLogDate().with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+                    weeklySums.put(logMonday, weeklySums.getOrDefault(logMonday, 0.0) + log.getCo2Emission());
+                }
+
+                for (LocalDate monday : mondays) {
+                    trend.add(TrendDTO.builder()
+                            .label("W/C " + monday.toString())
+                            .co2Emission(Math.round(weeklySums.getOrDefault(monday, 0.0) * 100.0) / 100.0)
+                            .build());
+                }
+                break;
+
+            case "monthly":
+                java.time.format.DateTimeFormatter monthFormatter = java.time.format.DateTimeFormatter.ofPattern("MMM yyyy");
+                List<java.time.YearMonth> yearMonths = new ArrayList<>();
+                for (int i = 5; i >= 0; i--) {
+                    yearMonths.add(java.time.YearMonth.from(today.minusMonths(i)));
+                }
+
+                Map<java.time.YearMonth, Double> monthlySums = new HashMap<>();
+                for (ActivityLog log : logs) {
+                    java.time.YearMonth logYM = java.time.YearMonth.from(log.getLogDate());
+                    monthlySums.put(logYM, monthlySums.getOrDefault(logYM, 0.0) + log.getCo2Emission());
+                }
+
+                for (java.time.YearMonth ym : yearMonths) {
+                    trend.add(TrendDTO.builder()
+                            .label(ym.format(monthFormatter))
+                            .co2Emission(Math.round(monthlySums.getOrDefault(ym, 0.0) * 100.0) / 100.0)
+                            .build());
+                }
+                break;
+
+            case "yearly":
+                List<Integer> years = new ArrayList<>();
+                for (int i = 2; i >= 0; i--) {
+                    years.add(today.getYear() - i);
+                }
+
+                Map<Integer, Double> yearlySums = new HashMap<>();
+                for (ActivityLog log : logs) {
+                    int logYear = log.getLogDate().getYear();
+                    yearlySums.put(logYear, yearlySums.getOrDefault(logYear, 0.0) + log.getCo2Emission());
+                }
+
+                for (Integer year : years) {
+                    trend.add(TrendDTO.builder()
+                            .label(year.toString())
+                            .co2Emission(Math.round(yearlySums.getOrDefault(year, 0.0) * 100.0) / 100.0)
+                            .build());
+                }
+                break;
+
+            case "daily":
+            default:
+                List<LocalDate> dates = new ArrayList<>();
+                for (int i = 6; i >= 0; i--) {
+                    dates.add(today.minusDays(i));
+                }
+
+                Map<LocalDate, Double> dailySums = new HashMap<>();
+                for (ActivityLog log : logs) {
+                    dailySums.put(log.getLogDate(), dailySums.getOrDefault(log.getLogDate(), 0.0) + log.getCo2Emission());
+                }
+
+                for (LocalDate date : dates) {
+                    trend.add(TrendDTO.builder()
+                            .label(date.toString())
+                            .co2Emission(Math.round(dailySums.getOrDefault(date, 0.0) * 100.0) / 100.0)
+                            .build());
+                }
+                break;
+        }
+
+        return trend;
     }
 
     private ActivityLogResponse mapToResponse(ActivityLog log) {

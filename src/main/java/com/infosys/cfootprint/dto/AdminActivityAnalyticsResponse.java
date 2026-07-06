@@ -16,4 +16,5 @@ public class AdminActivityAnalyticsResponse {
     private Long logsLoggedToday;
     private Double totalCo2EmissionKgs;
     private List<CategoryBreakdownDTO> categoryBreakdown;
+    private List<TrendDTO> trend;
 }

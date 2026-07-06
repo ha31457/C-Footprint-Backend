@@ -15,4 +15,5 @@ public class UserDashboardResponse {
     private Double todayTotalEmission;
     private List<CategoryBreakdownDTO> categoryBreakdown;
     private List<WeeklyTrendDTO> weeklyTrend;
+    private List<TrendDTO> trend;
 }
