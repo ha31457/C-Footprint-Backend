@@ -1,0 +1,13 @@
+ALTER TABLE users ADD COLUMN mobile_number VARCHAR(15);
+ALTER TABLE users ADD COLUMN age INT;
+ALTER TABLE users ADD COLUMN gender VARCHAR(10);
+ALTER TABLE users ADD COLUMN is_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE TABLE otp_token (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    otp VARCHAR(6) NOT NULL,
+    purpose VARCHAR(20) NOT NULL,
+    expiry_date TIMESTAMP NOT NULL,
+    user_id UUID NOT NULL,
+    CONSTRAINT fk_otp_token_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

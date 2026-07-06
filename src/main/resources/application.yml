@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: cfootprint
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cfootprint
+    username: cfootprint_user
+    password: cfootprint_pass
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+
+  jpa:
+    defer-datasource-initialization: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: public
+
+  mail:
+    host: ${SPRING_MAIL_HOST:localhost}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+
+app:
+  jwt:
+    secret: "uEKGQn2sI2ar2vCt4W71QboqC6SOUh/66SnvuXNiLe8="
+    expiration-ms: 900000          # 15 minutes
+    refresh-expiration-ms: 604800000  # 7 days
+
+server:
+  port: 8080
+
+logging:
+  level:
+    org.flywaydb: DEBUG
