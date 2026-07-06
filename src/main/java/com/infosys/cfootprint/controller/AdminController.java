@@ -1,14 +1,17 @@
 package com.infosys.cfootprint.controller;
 
 import com.infosys.cfootprint.dto.AdminActivityAnalyticsResponse;
+import com.infosys.cfootprint.dto.AdminActivityLogResponse;
 import com.infosys.cfootprint.dto.AdminUserAnalyticsResponse;
 import com.infosys.cfootprint.dto.UserResponse;
 import com.infosys.cfootprint.service.AdminAnalyticsService;
 import com.infosys.cfootprint.service.AdminUserService;
+import com.infosys.cfootprint.service.AdminActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +24,9 @@ public class AdminController {
 
     @Autowired
     private AdminUserService adminUserService;
+
+    @Autowired
+    private AdminActivityService adminActivityService;
 
     @GetMapping("/users")
     public ResponseEntity<AdminUserAnalyticsResponse> getUserAnalytics() {
@@ -42,5 +48,12 @@ public class AdminController {
     public ResponseEntity<AdminActivityAnalyticsResponse> getActivityAnalytics(
             @RequestParam(required = false, defaultValue = "daily") String range) {
         return ResponseEntity.ok(adminAnalyticsService.getPlatformActivityAnalytics(range));
+    }
+
+    @GetMapping("/activities/list")
+    public ResponseEntity<List<AdminActivityLogResponse>> getPlatformActivities(
+            @RequestParam(required = false) String range,
+            @RequestParam(required = false) LocalDate date) {
+        return ResponseEntity.ok(adminActivityService.getPlatformActivities(range, date));
     }
 }
