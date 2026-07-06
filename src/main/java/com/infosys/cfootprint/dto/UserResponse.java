@@ -20,4 +20,5 @@ public class UserResponse {
     private Integer age;
     private String gender;
     private boolean isEnabled;
+    private boolean isDisabled;
 }

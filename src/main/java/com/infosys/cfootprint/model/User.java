@@ -46,6 +46,10 @@ public class User {
     @Builder.Default
     private boolean isEnabled = false;
 
+    @Column(name = "is_disabled", nullable = false)
+    @Builder.Default
+    private boolean isDisabled = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

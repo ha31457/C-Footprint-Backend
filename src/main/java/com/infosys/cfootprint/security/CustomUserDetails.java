@@ -17,15 +17,17 @@ public class CustomUserDetails implements UserDetails {
     private final String email;
     private final String password;
     private final boolean isEnabled;
+    private final boolean isDisabled;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public CustomUserDetails(UUID id, String username, String email, String password,
-                             boolean isEnabled, Collection<? extends GrantedAuthority> authorities) {
+                             boolean isEnabled, boolean isDisabled, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
         this.isEnabled = isEnabled;
+        this.isDisabled = isDisabled;
         this.authorities = authorities;
     }
 
@@ -37,6 +39,7 @@ public class CustomUserDetails implements UserDetails {
                 user.getEmail(),
                 user.getPassword(),
                 user.isEnabled(),
+                user.isDisabled(),
                 Collections.singletonList(authority)
         );
     }
@@ -71,7 +74,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !isDisabled;
     }
 
     @Override
