@@ -42,6 +42,13 @@ public class User {
     @Column(name = "gender", length = 10)
     private String gender;
 
+    @Column(name = "avatar", length = 50)
+    @Builder.Default
+    private String avatar = "male-1";
+
+    @Column(name = "avatar_image_id", length = 100)
+    private String avatarImageId;
+
     @Column(name = "is_enabled", nullable = false)
     @Builder.Default
     private boolean isEnabled = false;

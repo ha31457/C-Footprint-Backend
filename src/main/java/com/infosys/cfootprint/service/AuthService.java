@@ -17,8 +17,23 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.LockedException;
+
+import com.infosys.cfootprint.util.AvatarUtils;
+
+import java.util.Collections;
+import java.util.UUID;
+
 @Service
 public class AuthService {
+
+    @Value("${app.google.client-id:}")
+    private String googleClientId;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -118,6 +133,7 @@ public class AuthService {
         otpTokenService.deleteOtp(otpToken);
     }
 
+    @Transactional
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -132,6 +148,9 @@ public class AuthService {
         String jwt = jwtService.generateToken(userDetails);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
 
+        User user = userRepository.findById(userDetails.getId()).orElse(null);
+        String avatar = user != null ? user.getAvatar() : "male-1";
+
         return JwtResponse.builder()
                 .accessToken(jwt)
                 .refreshToken(refreshToken.getToken())
@@ -139,6 +158,76 @@ public class AuthService {
                 .username(userDetails.getUsername())
                 .email(userDetails.getEmail())
                 .role(userDetails.getAuthorities().iterator().next().getAuthority())
+                .avatar(avatar)
+                .avatarUrl(AvatarUtils.getAvatarUrl(user))
+                .build();
+    }
+
+    @Transactional
+    public JwtResponse authenticateGoogleUser(GoogleLoginRequest request) {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                .setAudience(Collections.singletonList(googleClientId))
+                .build();
+
+        GoogleIdToken idToken;
+        try {
+            idToken = verifier.verify(request.getIdToken());
+        } catch (Exception e) {
+            throw new BadRequestException("Invalid Google ID token signature");
+        }
+
+        if (idToken == null) {
+            throw new BadRequestException("Invalid or expired Google ID token");
+        }
+
+        GoogleIdToken.Payload payload = idToken.getPayload();
+        String email = payload.getEmail();
+
+        if (email == null || email.isBlank()) {
+            throw new BadRequestException("Google ID token payload does not contain an email address");
+        }
+
+        User user = userRepository.findByEmail(email).orElse(null);
+
+        if (user == null) {
+            String username = email.split("@")[0];
+            if (userRepository.existsByUsername(username)) {
+                username = username + "_" + UUID.randomUUID().toString().substring(0, 4);
+            }
+
+            user = User.builder()
+                    .username(username)
+                    .email(email)
+                    .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                    .role("ROLE_USER")
+                    .isEnabled(true)
+                    .isDisabled(false)
+                    .build();
+
+            user = userRepository.save(user);
+        } else {
+            if (user.isDisabled()) {
+                throw new LockedException("Your account has been disabled by the admin.");
+            }
+            if (!user.isEnabled()) {
+                user.setEnabled(true);
+                user = userRepository.save(user);
+            }
+        }
+
+        CustomUserDetails userDetails = CustomUserDetails.build(user);
+        String jwt = jwtService.generateToken(userDetails);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+
+        return JwtResponse.builder()
+                .accessToken(jwt)
+                .refreshToken(refreshToken.getToken())
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .avatar(user.getAvatar())
+                .avatarUrl(AvatarUtils.getAvatarUrl(user))
                 .build();
     }
 }
