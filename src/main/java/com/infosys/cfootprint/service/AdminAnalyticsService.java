@@ -47,19 +47,45 @@ public class AdminAnalyticsService {
 
         long totalLogs = allLogs.size();
         long logsToday = allLogs.stream().filter(log -> log.getLogDate().equals(today)).count();
-        double totalCo2 = allLogs.stream().mapToDouble(ActivityLog::getCo2Emission).sum();
 
-        Map<String, Double> categorySums = allLogs.stream()
+        LocalDate startDate;
+        switch (range.toLowerCase()) {
+            case "daily":
+                startDate = today;
+                break;
+            case "weekly":
+                startDate = today.minusDays(6);
+                break;
+            case "monthly":
+                startDate = today.minusDays(29);
+                break;
+            case "yearly":
+                startDate = today.minusYears(1);
+                break;
+            default:
+                startDate = null;
+        }
+
+        List<ActivityLog> filteredLogsForBreakdown = allLogs;
+        if (startDate != null) {
+            filteredLogsForBreakdown = allLogs.stream()
+                    .filter(log -> !log.getLogDate().isBefore(startDate) && !log.getLogDate().isAfter(today))
+                    .collect(Collectors.toList());
+        }
+
+        double rangeTotalCo2 = filteredLogsForBreakdown.stream().mapToDouble(ActivityLog::getCo2Emission).sum();
+
+        Map<String, Double> categorySums = filteredLogsForBreakdown.stream()
                 .collect(Collectors.groupingBy(
                         ActivityLog::getCategory,
                         Collectors.summingDouble(ActivityLog::getCo2Emission)
                 ));
 
         List<CategoryBreakdownDTO> breakdown = new ArrayList<>();
-        List<String> categories = Arrays.asList("transport", "electricity", "food", "shopping");
+        List<String> categories = Arrays.asList("transport", "electricity", "food", "shopping", "waste", "water", "heating", "other");
         for (String cat : categories) {
             double co2 = categorySums.getOrDefault(cat, 0.0);
-            double pct = totalCo2 > 0 ? (co2 / totalCo2) * 100 : 0.0;
+            double pct = rangeTotalCo2 > 0 ? (co2 / rangeTotalCo2) * 100 : 0.0;
             breakdown.add(CategoryBreakdownDTO.builder()
                     .category(cat)
                     .co2Emission(Math.round(co2 * 100.0) / 100.0)
@@ -72,7 +98,7 @@ public class AdminAnalyticsService {
         return AdminActivityAnalyticsResponse.builder()
                 .totalLogs(totalLogs)
                 .logsLoggedToday(logsToday)
-                .totalCo2EmissionKgs(Math.round(totalCo2 * 100.0) / 100.0)
+                .totalCo2EmissionKgs(Math.round(rangeTotalCo2 * 100.0) / 100.0)
                 .categoryBreakdown(breakdown)
                 .trend(trend)
                 .build();

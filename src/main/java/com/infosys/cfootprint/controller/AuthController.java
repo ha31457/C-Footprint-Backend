@@ -53,6 +53,11 @@ public class AuthController {
         return ResponseEntity.ok(authService.authenticateUser(loginRequest));
     }
 
+    @PostMapping("/google")
+    public ResponseEntity<JwtResponse> authenticateGoogleUser(@Valid @RequestBody GoogleLoginRequest request) {
+        return ResponseEntity.ok(authService.authenticateGoogleUser(request));
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<JwtResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
         String requestRefreshToken = request.getRefreshToken();

@@ -37,6 +37,7 @@ public class RefreshTokenService {
 
         // Delete any existing token for the user to maintain 1-to-1 mapping
         refreshTokenRepository.deleteByUser(user);
+        refreshTokenRepository.flush();
 
         RefreshToken refreshToken = RefreshToken.builder()
                 .user(user)

@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.Optional;
 
 @Service
 public class OtpTokenService {

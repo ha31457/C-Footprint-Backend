@@ -1,0 +1,101 @@
+### Admin Authenticate to get JWT token
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "usernameOrEmail": "admin@cfootprint.com",
+  "password": "adminpassword"
+}
+
+> {%
+    client.global.set("admin_token", response.body.accessToken);
+%}
+@admin_token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc4NTA4OTExNCwiZXhwIjoxNzg1MDkwMDE0fQ.Li7MpEmPXlyLDSGXzlNZ9NgcfhS4u3Xv8GQJxeo0EFA
+
+### Get Diagnostic Leaderboard
+GET http://localhost:8080/api/admin/leaderboard
+Authorization: Bearer {{admin_token}}
+
+### List All Badge Definitions
+GET http://localhost:8080/api/admin/badges
+Authorization: Bearer {{admin_token}}
+
+### Create New Badge Definition
+POST http://localhost:8080/api/admin/badges
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "badgeType": "TEN_LOGS",
+  "title": "Elite Logger",
+  "description": "Awarded for logging 10 or more total activities.",
+  "iconName": "EliteLogger",
+  "iconUrl": "https://api.dicebear.com/7.x/identicon/svg?seed=EliteLogger",
+  "ruleType": "LOG_COUNT",
+  "ruleValue": 10.0
+}
+
+### Update Badge Definition (Replace {id} with UUID from above response)
+PUT http://localhost:8080/api/admin/badges/a0000000-0000-0000-0000-000000000001
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "badgeType": "FIRST_LOG",
+  "title": "Eco Pioneer (Modified)",
+  "description": "Log your first carbon activity on the platform.",
+  "iconName": "EcoPioneer",
+  "iconUrl": "https://api.dicebear.com/7.x/identicon/svg?seed=EcoPioneer",
+  "ruleType": "LOG_COUNT",
+  "ruleValue": 1.0
+}
+
+### Delete Badge Definition (Replace {id} with UUID from above response)
+DELETE http://localhost:8080/api/admin/badges/a0000000-0000-0000-0000-000000000001
+Authorization: Bearer {{admin_token}}
+
+### ----------------------------------------------------
+### Restored User Management Endpoints
+### ----------------------------------------------------
+
+### Get Platform User Analytics
+GET http://localhost:8080/api/admin/users
+Authorization: Bearer {{admin_token}}
+
+### Get All Registered Users
+GET http://localhost:8080/api/admin/users/all
+Authorization: Bearer {{admin_token}}
+
+### Create User via Admin
+POST http://localhost:8080/api/admin/users
+Authorization: Bearer {{admin_token}}
+Content-Type: application/json
+
+{
+  "username": "admincreateduser",
+  "email": "createdbyadmin@cfootprint.com",
+  "password": "password123",
+  "mobileNumber": "+1234567890",
+  "age": 30,
+  "gender": "Male"
+}
+
+### Enable User (Replace {id} with User UUID)
+PUT http://localhost:8080/api/admin/users/6f288668-27e4-485d-b4cf-33e62a1d6617/enable
+Authorization: Bearer {{admin_token}}
+
+### Disable User (Soft Delete - Replace {id} with User UUID)
+DELETE http://localhost:8080/api/admin/users/6f288668-27e4-485d-b4cf-33e62a1d6617
+Authorization: Bearer {{admin_token}}
+
+### ----------------------------------------------------
+### Restored Activity/Dashboard Analytics Endpoints
+### ----------------------------------------------------
+
+### Get Platform Activity Analytics Summary
+GET http://localhost:8080/api/admin/activities?range=weekly
+Authorization: Bearer {{admin_token}}
+
+### Get Platform Activities List (With search filters)
+GET http://localhost:8080/api/admin/activities/list?range=weekly
+Authorization: Bearer {{admin_token}}

@@ -5,21 +5,20 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class JwtResponse {
-    @Builder.Default
-    private String tokenType = "Bearer";
-    private String accessToken;
-    private String refreshToken;
+public class ComplaintResponse {
     private UUID id;
-    private String username;
     private String email;
-    private String role;
-    private String avatar;
-    private String avatarUrl;
+    private String category;
+    private String complaintText;
+    private String replyText;
+    private boolean isResolved;
+    private LocalDateTime createdAt;
+    private LocalDateTime repliedAt;
 }

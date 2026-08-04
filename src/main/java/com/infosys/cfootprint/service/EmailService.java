@@ -52,7 +52,7 @@ public class EmailService {
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
-    private void sendHtmlEmail(String to, String subject, String htmlContent) {
+    public void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");

@@ -11,16 +11,12 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserResponse {
-    private UUID id;
+public class LeaderboardEntryDTO {
+    private Integer rank;
+    private UUID userId;
     private String username;
-    private String email;
-    private String role;
-    private String mobileNumber;
-    private Integer age;
-    private String gender;
     private String avatar;
     private String avatarUrl;
-    private boolean isEnabled;
-    private boolean isDisabled;
+    private Double totalCo2Emission;
+    private Boolean isCurrentUser;
 }

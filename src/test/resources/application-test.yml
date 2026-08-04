@@ -11,9 +11,16 @@ spring:
     show-sql: false
   flyway:
     enabled: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
 
 app:
   jwt:
     secret: "uEKGQn2sI2ar2vCt4W71QboqC6SOUh/66SnvuXNiLe8="
     expiration-ms: 900000
     refresh-expiration-ms: 604800000
+  gemini:
+    keys: dummy-key-1,dummy-key-2,dummy-key-3
+    models: dummy-model-1,dummy-model-2,dummy-model-3
