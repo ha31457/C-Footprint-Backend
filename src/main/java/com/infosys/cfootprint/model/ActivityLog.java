@@ -34,6 +34,9 @@ public class ActivityLog {
     @Column(name = "co2_emission", nullable = false)
     private Double co2Emission;
 
+    @Column(name = "image_proof_id", length = 100)
+    private String imageProofId;
+
     @Column(name = "log_date", nullable = false)
     private LocalDate logDate;
 

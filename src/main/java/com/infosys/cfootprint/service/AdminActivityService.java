@@ -1,6 +1,7 @@
 package com.infosys.cfootprint.service;
 
 import com.infosys.cfootprint.dto.AdminActivityLogResponse;
+import com.infosys.cfootprint.dto.AdminFilteredActivitiesResponse;
 import com.infosys.cfootprint.model.ActivityLog;
 import com.infosys.cfootprint.repository.ActivityLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,7 +20,7 @@ public class AdminActivityService {
     private ActivityLogRepository activityLogRepository;
 
     @Transactional(readOnly = true)
-    public List<AdminActivityLogResponse> getPlatformActivities(String range, LocalDate date) {
+    public AdminFilteredActivitiesResponse getPlatformActivities(String range, LocalDate date, String category) {
         List<ActivityLog> logs;
 
         if (date != null) {
@@ -52,7 +54,13 @@ public class AdminActivityService {
             logs = activityLogRepository.findAllByOrderByLogDateDesc();
         }
 
-        return logs.stream().map(log -> AdminActivityLogResponse.builder()
+        if (category != null && !category.isBlank()) {
+            logs = logs.stream()
+                    .filter(log -> log.getCategory().equalsIgnoreCase(category))
+                    .collect(Collectors.toList());
+        }
+
+        List<AdminActivityLogResponse> mappedLogs = logs.stream().map(log -> AdminActivityLogResponse.builder()
                 .id(log.getId())
                 .category(log.getCategory())
                 .activityType(log.getActivityType())
@@ -63,7 +71,25 @@ public class AdminActivityService {
                 .userId(log.getUser().getId())
                 .username(log.getUser().getUsername())
                 .userEmail(log.getUser().getEmail())
+                .imageProofId(log.getImageProofId())
                 .build()
         ).collect(Collectors.toList());
+
+        double totalCo2 = mappedLogs.stream()
+                .mapToDouble(AdminActivityLogResponse::getCo2Emission)
+                .sum();
+
+        Map<String, Double> breakdown = mappedLogs.stream()
+                .collect(Collectors.groupingBy(
+                        AdminActivityLogResponse::getCategory,
+                        Collectors.summingDouble(AdminActivityLogResponse::getCo2Emission)
+                ));
+        breakdown.forEach((k, v) -> breakdown.put(k, Math.round(v * 100.0) / 100.0));
+
+        return AdminFilteredActivitiesResponse.builder()
+                .activities(mappedLogs)
+                .totalCo2Emission(Math.round(totalCo2 * 100.0) / 100.0)
+                .categoryBreakdown(breakdown)
+                .build();
     }
 }

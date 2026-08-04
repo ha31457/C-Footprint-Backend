@@ -20,4 +20,5 @@ public class ActivityLogResponse {
     private String unit;
     private Double co2Emission;
     private LocalDate logDate;
+    private String imageProofId;
 }

@@ -23,4 +23,5 @@ public class AdminActivityLogResponse {
     private UUID userId;
     private String username;
     private String userEmail;
+    private String imageProofId;
 }

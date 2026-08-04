@@ -12,6 +12,9 @@ spring:
     url: jdbc:postgresql://localhost:5432/cfootprint
     username: cfootprint_user
     password: cfootprint_pass
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/cfootprint}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -46,6 +49,14 @@ app:
     secret: "uEKGQn2sI2ar2vCt4W71QboqC6SOUh/66SnvuXNiLe8="
     expiration-ms: 900000          # 15 minutes
     refresh-expiration-ms: 604800000  # 7 days
+  google:
+    client-id: "865685222965-kb85u59k150mlq8pqgho9h4ap5pt2v71.apps.googleusercontent.com"
+  gemini:
+    keys: ${GEMINI_API_KEY_1:AIzaSyAclwAK2qBBdn6uof6d2yUL3-daFdNaOU8},${GEMINI_API_KEY_2:},${GEMINI_API_KEY_3:}
+    models: ${GEMINI_MODEL_1:gemini-2.5-flash},${GEMINI_MODEL_2:gemini-2.5-pro},${GEMINI_MODEL_3:gemini-2.0-flash},${GEMINI_MODEL_4:gemini-1.5-flash},${GEMINI_MODEL_5:gemini-1.5-pro},${GEMINI_MODEL_6:gemini-2.0-flash-lite-preview-02-05},${GEMINI_MODEL_7:gemini-1.5-flash-8b},${GEMINI_MODEL_8:gemini-1.0-pro},${GEMINI_MODEL_9:gemini-2.0-flash-exp},${GEMINI_MODEL_10:gemini-2.0-flash-thinking-exp-01-21}
+  groq:
+    api-key: ${GROQ_API_KEY:}
+    model: ${GROQ_MODEL:llama-3.3-70b-versatile}
 
 server:
   port: 8080

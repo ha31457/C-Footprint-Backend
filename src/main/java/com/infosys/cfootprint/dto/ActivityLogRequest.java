@@ -25,4 +25,6 @@ public class ActivityLogRequest {
 
     @NotNull(message = "Log date is required")
     private LocalDate logDate;
+
+    private String imageProofId;
 }
