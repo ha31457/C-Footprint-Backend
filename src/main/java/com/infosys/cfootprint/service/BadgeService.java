@@ -44,8 +44,14 @@ public class BadgeService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private SystemSettingService systemSettingService;
+
     @Transactional
     public void checkAndAwardBadges(User user) {
+        if (!systemSettingService.isFeatureEnabled("badges_enabled")) {
+            return;
+        }
         LocalDateTime now = LocalDateTime.now();
         List<BadgeDefinition> definitions = badgeDefinitionRepository.findAll();
 

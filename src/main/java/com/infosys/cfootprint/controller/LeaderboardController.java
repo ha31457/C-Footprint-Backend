@@ -22,8 +22,15 @@ public class LeaderboardController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private com.infosys.cfootprint.service.SystemSettingService systemSettingService;
+
     @GetMapping
     public ResponseEntity<LeaderboardResponse> getLeaderboard(Authentication authentication) {
+        if (!systemSettingService.isFeatureEnabled("leaderboard_enabled")) {
+            throw new com.infosys.cfootprint.exception.BadRequestException("Community leaderboard is disabled by administrator.");
+        }
+
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));

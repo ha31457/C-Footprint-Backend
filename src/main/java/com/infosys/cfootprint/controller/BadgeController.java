@@ -24,8 +24,15 @@ public class BadgeController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private com.infosys.cfootprint.service.SystemSettingService systemSettingService;
+
     @GetMapping
     public ResponseEntity<List<BadgeResponse>> getUserBadges(Authentication authentication) {
+        if (!systemSettingService.isFeatureEnabled("badges_enabled")) {
+            throw new com.infosys.cfootprint.exception.BadRequestException("Badges system is disabled by administrator.");
+        }
+
         if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
             User user = userRepository.findById(userDetails.getId())
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
