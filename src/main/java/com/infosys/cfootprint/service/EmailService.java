@@ -52,6 +52,35 @@ public class EmailService {
         sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
+    public void sendWelcomeEmail(String toEmail, String username) {
+        String subject = "Welcome to Carbon Footprint Tracker! 🌱";
+        String htmlContent = "<div style=\"font-family: Arial, sans-serif; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 600px; background-color: #f7fafc; color: #2d3748;\">" +
+                "<div style=\"text-align: center; margin-bottom: 20px;\">" +
+                "<h2 style=\"color: #2f855a; margin: 0; font-size: 26px;\">Welcome to Carbon Footprint Tracker! 🌱</h2>" +
+                "</div>" +
+                "<p style=\"font-size: 16px; line-height: 1.6;\">Hello <strong>" + username + "</strong>,</p>" +
+                "<p style=\"font-size: 16px; line-height: 1.6;\">" +
+                "Thank you for joining our community of sustainability champions! We are excited to support you on your journey to reduce your carbon footprint and make a positive impact on the planet." +
+                "</p>" +
+                "<div style=\"background-color: #ffffff; border-left: 4px solid #48bb78; padding: 15px; margin: 20px 0; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);\">" +
+                "<h3 style=\"margin-top: 0; color: #2f855a;\">Here are your next steps:</h3>" +
+                "<ul style=\"padding-left: 20px; line-height: 1.6; margin-bottom: 0;\">" +
+                "<li><strong>Log Daily Activities:</strong> Track transport, food, energy, and waste emissions.</li>" +
+                "<li><strong>Set Goals:</strong> Define reduction budgets to stay accountable.</li>" +
+                "<li><strong>Earn Badges:</strong> Celebrate milestones as you build sustainable habits.</li>" +
+                "<li><strong>Rise in Rank:</strong> Compete on the platform leaderboard for the lowest emission scores.</li>" +
+                "</ul>" +
+                "</div>" +
+                "<p style=\"font-size: 16px; line-height: 1.6; text-align: center; margin-top: 25px;\">" +
+                "Together, we can create a cleaner, greener future. Let's make every activity count!" +
+                "</p>" +
+                "<hr style=\"border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;\" />" +
+                "<p style=\"font-size: 12px; color: #a0aec0; text-align: center; margin: 0;\">Carbon Footprint Monitoring and Sustainability Analytics</p>" +
+                "</div>";
+
+        sendHtmlEmail(toEmail, subject, htmlContent);
+    }
+
     public void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

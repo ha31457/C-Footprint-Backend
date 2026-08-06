@@ -56,6 +56,9 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private SystemSettingService systemSettingService;
+
     @Transactional
     public UserResponse registerUser(SignupRequest signupRequest) {
         if (userRepository.existsByUsername(signupRequest.getUsername())) {
@@ -108,6 +111,7 @@ public class AuthService {
         user.setEnabled(true);
         userRepository.save(user);
         otpTokenService.deleteOtp(otpToken);
+        emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
     }
 
     @Transactional
@@ -165,6 +169,10 @@ public class AuthService {
 
     @Transactional
     public JwtResponse authenticateGoogleUser(GoogleLoginRequest request) {
+        if (!systemSettingService.isFeatureEnabled("google_signin_enabled")) {
+            throw new BadRequestException("Google Sign-In is disabled by administrator.");
+        }
+
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
                 .setAudience(Collections.singletonList(googleClientId))
                 .build();
