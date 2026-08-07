@@ -201,16 +201,16 @@ public class ActivityLogService {
         LocalDate startDate;
         switch (range.toLowerCase()) {
             case "daily":
-                startDate = today;
-                break;
-            case "weekly":
                 startDate = today.minusDays(6);
                 break;
+            case "weekly":
+                startDate = today.minusDays(27);
+                break;
             case "monthly":
-                startDate = today.minusDays(29);
+                startDate = today.minusMonths(6);
                 break;
             case "yearly":
-                startDate = today.minusYears(1);
+                startDate = today.minusYears(3);
                 break;
             default:
                 startDate = null;
