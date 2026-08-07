@@ -10,7 +10,7 @@ Content-Type: application/json
 > {%
     client.global.set("admin_token", response.body.accessToken);
 %}
-@admin_token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc4NTA4OTExNCwiZXhwIjoxNzg1MDkwMDE0fQ.Li7MpEmPXlyLDSGXzlNZ9NgcfhS4u3Xv8GQJxeo0EFA
+@admin_token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc4NjA5MzQzOSwiZXhwIjoxNzg2MDk0MzM5fQ.QFrn0DrAQNozebgWuQIIu-dq9hN6oOvDmyv2AS7-xpY
 
 ### Get Diagnostic Leaderboard
 GET http://localhost:8080/api/admin/leaderboard
