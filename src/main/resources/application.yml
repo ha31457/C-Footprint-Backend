@@ -45,7 +45,7 @@ spring:
 
 
 app:
-  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  frontend-url: ${FRONTEND_URL:https://c-footprint-frontend.vercel.app}
   brevo:
     api-key: ${BREVO_API_KEY:}
     sender-name: ${BREVO_SENDER_NAME:EcoFootprint}

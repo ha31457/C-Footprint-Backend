@@ -20,7 +20,7 @@ public class EmailService {
     @Value("${spring.mail.username:noreply@cfootprint.com}")
     private String fromEmail;
 
-    @Value("${app.frontend-url:http://localhost:3000}")
+    @Value("${app.frontend-url:https://c-footprint-frontend.vercel.app}")
     private String frontendUrl;
 
     @Value("${app.brevo.api-key:}")
@@ -160,7 +160,7 @@ public class EmailService {
         }
     }
 
-    public void sendTempPasswordEmail(String toEmail, String username, String tempPassword) {
+    public void sendTempPasswordEmail(String toEmail, String username, String tempPassword, String orgName) {
         String subject = "Your Temporary Password for EcoFootprint";
         String htmlContent = "<div style=\"font-family: Arial, sans-serif; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 600px; background-color: #f7fafc; color: #2d3748;\">" +
                 "<div style=\"text-align: center; margin-bottom: 20px;\">" +
@@ -168,7 +168,7 @@ public class EmailService {
                 "</div>" +
                 "<p style=\"font-size: 16px; line-height: 1.6;\">Hello,</p>" +
                 "<p style=\"font-size: 16px; line-height: 1.6;\">" +
-                "Your organization administrator has created an account for you on the <strong>EcoFootprint</strong> platform." +
+                "Your organization administrator at <strong>" + orgName + "</strong> has created an account for you on the <strong>EcoFootprint</strong> platform." +
                 "</p>" +
                 "<p style=\"font-size: 16px; line-height: 1.6; color: #4a5568;\">" +
                 "EcoFootprint is an interactive sustainability application designed to measure, analyze, and reduce your daily carbon footprint. " +

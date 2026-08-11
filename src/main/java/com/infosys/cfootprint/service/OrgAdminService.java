@@ -82,7 +82,7 @@ public class OrgAdminService {
 
         // Send temporary password email to the employee
         try {
-            emailService.sendTempPasswordEmail(saved.getEmail(), saved.getUsername(), request.getTemporaryPassword());
+            emailService.sendTempPasswordEmail(saved.getEmail(), saved.getUsername(), request.getTemporaryPassword(), orgAdmin.getOrganization().getName());
         } catch (Exception e) {
             System.err.println("Failed to send temp password email: " + e.getMessage());
         }

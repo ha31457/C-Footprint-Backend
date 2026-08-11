@@ -30,6 +30,9 @@ public class OrgAdminController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private com.infosys.cfootprint.service.AnalysisService analysisService;
+
     @PostMapping("/employees")
     public ResponseEntity<UserResponse> createEmployee(
             @Valid @RequestBody OrgCreateEmployeeRequest request,
@@ -171,6 +174,12 @@ public class OrgAdminController {
             Authentication authentication) {
         User orgAdmin = getAuthenticatedOrgAdmin(authentication);
         return ResponseEntity.ok(supportService.replyToComplaintOrg(id, request, orgAdmin));
+    }
+
+    @GetMapping("/analysis")
+    public ResponseEntity<AdminAnalysisResponse> getOrgAnalysis(Authentication authentication) {
+        User orgAdmin = getAuthenticatedOrgAdmin(authentication);
+        return ResponseEntity.ok(analysisService.getOrgAdminAnalysis(orgAdmin));
     }
 
     private User getAuthenticatedOrgAdmin(Authentication authentication) {

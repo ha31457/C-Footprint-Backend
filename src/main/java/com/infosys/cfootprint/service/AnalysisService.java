@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AnalysisService {
@@ -104,6 +105,71 @@ public class AnalysisService {
 
         return AdminAnalysisResponse.builder()
                 .totalUsers(totalUsers)
+                .totalLogs(totalLogs)
+                .categoryLogs(categoryLogs)
+                .categoryEmission(categoryEmission)
+                .mostLoggedCategory(mostLoggedCategory)
+                .highestEmissionCategory(highestEmissionCategory)
+                .averageEmissionPerUser(Math.round(avgEmission * 100.0) / 100.0)
+                .tips(adminTips)
+                .build();
+    }
+
+    public AdminAnalysisResponse getOrgAdminAnalysis(com.infosys.cfootprint.model.User orgAdmin) {
+        if (orgAdmin.getOrganization() == null) {
+            throw new com.infosys.cfootprint.exception.BadRequestException("No organization associated.");
+        }
+
+        UUID orgId = orgAdmin.getOrganization().getId();
+
+        List<com.infosys.cfootprint.model.User> employees = userRepository.findAll().stream()
+                .filter(u -> u.getOrganization() != null && u.getOrganization().getId().equals(orgId))
+                .collect(Collectors.toList());
+
+        List<UUID> employeeIds = employees.stream()
+                .map(com.infosys.cfootprint.model.User::getId)
+                .collect(Collectors.toList());
+
+        List<ActivityLog> logs = activityLogRepository.findAll().stream()
+                .filter(log -> employeeIds.contains(log.getUser().getId()))
+                .collect(Collectors.toList());
+
+        long totalEmployees = employees.size();
+        long totalLogs = logs.size();
+
+        Map<String, Long> categoryLogs = new HashMap<>();
+        Map<String, Double> categoryEmission = new HashMap<>();
+        double grandTotalEmission = 0.0;
+
+        for (ActivityLog log : logs) {
+            String cat = log.getCategory().toLowerCase();
+            categoryLogs.put(cat, categoryLogs.getOrDefault(cat, 0L) + 1);
+            categoryEmission.put(cat, categoryEmission.getOrDefault(cat, 0.0) + log.getCo2Emission());
+            grandTotalEmission += log.getCo2Emission();
+        }
+
+        categoryEmission.forEach((key, val) -> categoryEmission.put(key, Math.round(val * 100.0) / 100.0));
+
+        String mostLoggedCategory = categoryLogs.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("None");
+
+        String highestEmissionCategory = categoryEmission.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("None");
+
+        double avgEmission = totalEmployees > 0 ? (grandTotalEmission / totalEmployees) : 0.0;
+
+        List<String> adminTips = Arrays.asList(
+                "Promote home energy audits and organization-wide green habits.",
+                "Encourage employees to use sustainable transport and remote work option when available.",
+                "Initiate office recycling programs and reduce paper consumption."
+        );
+
+        return AdminAnalysisResponse.builder()
+                .totalUsers(totalEmployees)
                 .totalLogs(totalLogs)
                 .categoryLogs(categoryLogs)
                 .categoryEmission(categoryEmission)
