@@ -23,6 +23,12 @@ public class EmailService {
     @Value("${app.frontend-url:http://localhost:3000}")
     private String frontendUrl;
 
+    @Value("${app.brevo.api-key:}")
+    private String brevoApiKey;
+
+    @Value("${app.brevo.sender-name:EcoFootprint}")
+    private String brevoSenderName;
+
     public void sendVerificationOtp(String toEmail, String otp) {
         String subject = "Verify your Carbon Footprint Tracker Account";
         String htmlContent = "<div style=\"font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; max-width: 600px;\">" +
@@ -85,6 +91,11 @@ public class EmailService {
     }
 
     public void sendHtmlEmail(String to, String subject, String htmlContent) {
+        if (brevoApiKey != null && !brevoApiKey.trim().isEmpty()) {
+            sendViaBrevo(to, subject, htmlContent);
+            return;
+        }
+
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -99,6 +110,53 @@ public class EmailService {
         } catch (MessagingException e) {
             logger.error("Failed to send email to {}: {}", to, e.getMessage());
             throw new RuntimeException("Email sending failed: " + e.getMessage());
+        }
+    }
+
+    private void sendViaBrevo(String to, String subject, String htmlContent) {
+        try {
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            
+            org.springframework.http.client.SimpleClientHttpRequestFactory factory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+            factory.setConnectTimeout(5000);
+            factory.setReadTimeout(5000);
+            restTemplate.setRequestFactory(factory);
+
+            String url = "https://api.brevo.com/v3/smtp/email";
+
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+            headers.setAccept(java.util.Collections.singletonList(org.springframework.http.MediaType.APPLICATION_JSON));
+            headers.set("api-key", brevoApiKey);
+
+            java.util.Map<String, Object> body = new java.util.HashMap<>();
+            
+            java.util.Map<String, String> sender = new java.util.HashMap<>();
+            sender.put("name", brevoSenderName);
+            sender.put("email", fromEmail != null && !fromEmail.trim().isEmpty() ? fromEmail : "noreply@cfootprint.com");
+            body.put("sender", sender);
+
+            java.util.List<java.util.Map<String, String>> toList = new java.util.ArrayList<>();
+            java.util.Map<String, String> recipient = new java.util.HashMap<>();
+            recipient.put("email", to);
+            toList.add(recipient);
+            body.put("to", toList);
+
+            body.put("subject", subject);
+            body.put("htmlContent", htmlContent);
+
+            org.springframework.http.HttpEntity<java.util.Map<String, Object>> entity = new org.springframework.http.HttpEntity<>(body, headers);
+            
+            org.springframework.http.ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                logger.info("Brevo HTTP email successfully sent to {}", to);
+            } else {
+                logger.error("Brevo email failed with status {}: {}", response.getStatusCode(), response.getBody());
+                throw new RuntimeException("Brevo API error: " + response.getBody());
+            }
+        } catch (Exception e) {
+            logger.error("Failed to send email via Brevo to {}: {}", to, e.getMessage());
+            throw new RuntimeException("Brevo email sending failed: " + e.getMessage());
         }
     }
 
