@@ -57,6 +57,14 @@ public class User {
     @Builder.Default
     private boolean isDisabled = false;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "organization_id")
+    private Organization organization;
+
+    @Column(name = "is_temp_password", nullable = false)
+    @Builder.Default
+    private boolean isTempPassword = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

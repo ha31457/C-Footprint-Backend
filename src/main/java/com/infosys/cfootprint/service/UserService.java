@@ -131,6 +131,8 @@ public class UserService {
                 .avatarUrl(AvatarUtils.getAvatarUrl(user))
                 .isEnabled(user.isEnabled())
                 .isDisabled(user.isDisabled())
+                .organizationName(user.getOrganization() != null ? user.getOrganization().getName() : null)
+                .isTempPassword(user.isTempPassword())
                 .build();
     }
 }

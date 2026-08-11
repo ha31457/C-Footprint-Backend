@@ -65,6 +65,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/support/**").permitAll()
                 .requestMatchers("/api/users/avatar/**").permitAll()
                 .requestMatchers("/api/settings").permitAll()
+                .requestMatchers("/api/org-admin/**").hasAuthority("ROLE_ORG_ADMIN")
                 .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                 .anyRequest().authenticated()
             );

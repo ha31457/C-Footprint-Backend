@@ -45,6 +45,7 @@ spring:
 
 
 app:
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
   jwt:
     secret: "uEKGQn2sI2ar2vCt4W71QboqC6SOUh/66SnvuXNiLe8="
     expiration-ms: 900000          # 15 minutes

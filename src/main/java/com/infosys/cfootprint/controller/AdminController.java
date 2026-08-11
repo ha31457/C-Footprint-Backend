@@ -175,6 +175,27 @@ public class AdminController {
         return ResponseEntity.ok(supportService.replyToComplaint(id, request));
     }
 
+    @Autowired
+    private OrganizationService organizationService;
+
+    @PostMapping("/organizations")
+    public ResponseEntity<com.infosys.cfootprint.model.Organization> createOrganization(
+            @Valid @RequestBody CreateOrganizationRequest request) {
+        return ResponseEntity.ok(organizationService.createOrganization(request));
+    }
+
+    @GetMapping("/organizations")
+    public ResponseEntity<List<com.infosys.cfootprint.model.Organization>> getAllOrganizations() {
+        return ResponseEntity.ok(organizationService.getAllOrganizations());
+    }
+
+    @PostMapping("/organizations/{orgId}/admin")
+    public ResponseEntity<UserResponse> createOrgAdmin(
+            @PathVariable UUID orgId,
+            @Valid @RequestBody CreateOrgAdminRequest request) {
+        return ResponseEntity.ok(organizationService.createOrgAdmin(orgId, request));
+    }
+
     private User getAuthenticatedUser(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         return userRepository.findById(userDetails.getId())

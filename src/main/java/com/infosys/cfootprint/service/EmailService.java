@@ -20,6 +20,9 @@ public class EmailService {
     @Value("${spring.mail.username:noreply@cfootprint.com}")
     private String fromEmail;
 
+    @Value("${app.frontend-url:http://localhost:3000}")
+    private String frontendUrl;
+
     public void sendVerificationOtp(String toEmail, String otp) {
         String subject = "Verify your Carbon Footprint Tracker Account";
         String htmlContent = "<div style=\"font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; max-width: 600px;\">" +
@@ -97,5 +100,40 @@ public class EmailService {
             logger.error("Failed to send email to {}: {}", to, e.getMessage());
             throw new RuntimeException("Email sending failed: " + e.getMessage());
         }
+    }
+
+    public void sendTempPasswordEmail(String toEmail, String username, String tempPassword) {
+        String subject = "Your Temporary Password for EcoFootprint";
+        String htmlContent = "<div style=\"font-family: Arial, sans-serif; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 600px; background-color: #f7fafc; color: #2d3748;\">" +
+                "<div style=\"text-align: center; margin-bottom: 20px;\">" +
+                "<h2 style=\"color: #2b6cb0; margin: 0; font-size: 24px;\">Welcome to EcoFootprint! 🌱</h2>" +
+                "</div>" +
+                "<p style=\"font-size: 16px; line-height: 1.6;\">Hello,</p>" +
+                "<p style=\"font-size: 16px; line-height: 1.6;\">" +
+                "Your organization administrator has created an account for you on the <strong>EcoFootprint</strong> platform." +
+                "</p>" +
+                "<p style=\"font-size: 16px; line-height: 1.6; color: #4a5568;\">" +
+                "EcoFootprint is an interactive sustainability application designed to measure, analyze, and reduce your daily carbon footprint. " +
+                "By logging activities, completing goals, and earning achievements, we aim to track progress and build a greener future together." +
+                "</p>" +
+                "<p style=\"font-size: 16px; line-height: 1.6;\">" +
+                "Your account is created and ready for use. Please use the following login credentials:" +
+                "</p>" +
+                "<div style=\"background: #edf2f7; padding: 15px; border-radius: 4px; color: #2d3748; margin: 20px 0;\">" +
+                "<p style=\"margin: 5px 0;\"><strong>Username:</strong> " + username + "</p>" +
+                "<p style=\"margin: 5px 0;\"><strong>Email:</strong> " + toEmail + "</p>" +
+                "<p style=\"margin: 5px 0;\"><strong>Temporary Password:</strong> <code style=\"font-size: 16px; font-weight: bold; background: #e2e8f0; padding: 2px 6px; border-radius: 4px;\">" + tempPassword + "</code></p>" +
+                "</div>" +
+                "<p style=\"font-size: 16px; line-height: 1.6; font-weight: bold; color: #e53e3e;\">" +
+                "Instruction: You are required to change this temporary password to a new, secure password on your first login to proceed and activate your account." +
+                "</p>" +
+                "<div style=\"text-align: center; margin: 25px 0;\">" +
+                "<a href=\"" + frontendUrl + "/login\" style=\"background-color: #2b6cb0; color: #ffffff; padding: 12px 25px; text-decoration: none; font-weight: bold; border-radius: 6px; display: inline-block;\">Log In & Set Password</a>" +
+                "</div>" +
+                "<hr style=\"border: none; border-top: 1px solid #e2e8f0; margin: 25px 0;\" />" +
+                "<p style=\"font-size: 12px; color: #a0aec0; text-align: center; margin: 0;\">EcoFootprint Sustainability Analytics</p>" +
+                "</div>";
+
+        sendHtmlEmail(toEmail, subject, htmlContent);
     }
 }

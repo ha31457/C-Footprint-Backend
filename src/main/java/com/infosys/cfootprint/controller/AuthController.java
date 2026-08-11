@@ -87,4 +87,14 @@ public class AuthController {
                 .ifPresent(user -> refreshTokenService.deleteByUserId(user.getId()));
         return ResponseEntity.ok("User logged out successfully!");
     }
+
+    @PostMapping("/change-temp-password")
+    public ResponseEntity<UserResponse> changeTempPassword(
+            @Valid @RequestBody ChangeTempPasswordRequest request,
+            org.springframework.security.core.Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails userDetails)) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(authService.changeTemporaryPassword(userDetails.getId(), request.getNewPassword()));
+    }
 }
