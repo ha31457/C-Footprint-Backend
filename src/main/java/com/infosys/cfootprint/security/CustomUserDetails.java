@@ -18,16 +18,19 @@ public class CustomUserDetails implements UserDetails {
     private final String password;
     private final boolean isEnabled;
     private final boolean isDisabled;
+    private final boolean isTempPassword;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public CustomUserDetails(UUID id, String username, String email, String password,
-                             boolean isEnabled, boolean isDisabled, Collection<? extends GrantedAuthority> authorities) {
+                             boolean isEnabled, boolean isDisabled, boolean isTempPassword,
+                             Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
         this.isEnabled = isEnabled;
         this.isDisabled = isDisabled;
+        this.isTempPassword = isTempPassword;
         this.authorities = authorities;
     }
 
@@ -40,6 +43,7 @@ public class CustomUserDetails implements UserDetails {
                 user.getPassword(),
                 user.isEnabled(),
                 user.isDisabled(),
+                user.isTempPassword(),
                 Collections.singletonList(authority)
         );
     }
@@ -93,6 +97,10 @@ public class CustomUserDetails implements UserDetails {
         if (o == null || getClass() != o.getClass()) return false;
         CustomUserDetails user = (CustomUserDetails) o;
         return Objects.equals(id, user.id);
+    }
+
+    public boolean isTempPassword() {
+        return isTempPassword;
     }
 
     @Override

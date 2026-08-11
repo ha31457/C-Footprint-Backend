@@ -1,5 +1,6 @@
 package com.infosys.cfootprint.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,4 +24,8 @@ public class UserResponse {
     private String avatarUrl;
     private boolean isEnabled;
     private boolean isDisabled;
+    private String organizationName;
+
+    @JsonProperty("isTempPassword")
+    private boolean isTempPassword;
 }

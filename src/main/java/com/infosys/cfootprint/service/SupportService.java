@@ -119,6 +119,40 @@ public class SupportService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<ComplaintResponse> getOrgComplaints(com.infosys.cfootprint.model.User orgAdmin) {
+        if (orgAdmin.getOrganization() == null) {
+            return java.util.Collections.emptyList();
+        }
+        UUID orgId = orgAdmin.getOrganization().getId();
+
+        java.util.Set<String> employeeEmails = userRepository.findAll().stream()
+                .filter(u -> u.getOrganization() != null && u.getOrganization().getId().equals(orgId))
+                .map(u -> u.getEmail().toLowerCase())
+                .collect(java.util.stream.Collectors.toSet());
+
+        return supportComplaintRepository.findAllByOrderByCreatedAtDesc().stream()
+                .filter(c -> employeeEmails.contains(c.getEmail().toLowerCase()))
+                .map(this::mapToResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Transactional
+    public ComplaintResponse replyToComplaintOrg(UUID id, ReplyComplaintRequest request, com.infosys.cfootprint.model.User orgAdmin) {
+        SupportComplaint complaint = supportComplaintRepository.findById(id)
+                .orElseThrow(() -> new BadRequestException("Complaint not found with ID: " + id));
+
+        com.infosys.cfootprint.model.User employee = userRepository.findByEmail(complaint.getEmail())
+                .orElseThrow(() -> new BadRequestException("Complaint user not found"));
+
+        if (orgAdmin.getOrganization() == null || employee.getOrganization() == null ||
+                !employee.getOrganization().getId().equals(orgAdmin.getOrganization().getId())) {
+            throw new BadRequestException("Access denied: This complaint does not belong to your organization.");
+        }
+
+        return replyToComplaint(id, request);
+    }
+
     private ComplaintResponse mapToResponse(SupportComplaint complaint) {
         return ComplaintResponse.builder()
                 .id(complaint.getId())

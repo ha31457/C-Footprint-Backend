@@ -1,5 +1,6 @@
 package com.infosys.cfootprint.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,4 +23,8 @@ public class JwtResponse {
     private String role;
     private String avatar;
     private String avatarUrl;
+    private String organizationName;
+
+    @JsonProperty("isTempPassword")
+    private boolean isTempPassword;
 }

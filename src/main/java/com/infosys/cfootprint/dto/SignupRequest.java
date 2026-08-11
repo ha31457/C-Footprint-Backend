@@ -1,5 +1,6 @@
 package com.infosys.cfootprint.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -31,4 +32,7 @@ public class SignupRequest {
 
     @NotBlank(message = "Gender is required")
     private String gender;
+
+    @JsonProperty("isOrgAdmin")
+    private boolean isOrgAdmin;
 }

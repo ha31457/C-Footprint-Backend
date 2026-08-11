@@ -25,6 +25,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.LockedException;
 
 import com.infosys.cfootprint.util.AvatarUtils;
+import com.infosys.cfootprint.model.Organization;
+import com.infosys.cfootprint.repository.OrganizationRepository;
+import java.time.LocalDateTime;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -40,6 +43,9 @@ public class AuthService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private OrganizationRepository organizationRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -59,6 +65,9 @@ public class AuthService {
     @Autowired
     private SystemSettingService systemSettingService;
 
+    @Autowired
+    private UserService userService;
+
     @Transactional
     public UserResponse registerUser(SignupRequest signupRequest) {
         if (userRepository.existsByUsername(signupRequest.getUsername())) {
@@ -69,16 +78,24 @@ public class AuthService {
             throw new BadRequestException("Email is already registered!");
         }
 
-        // Create new user's account with ROLE_USER strictly enforced, and isEnabled = false
+        Organization organization = null;
+        String role = "ROLE_USER";
+
+        if (signupRequest.isOrgAdmin()) {
+            role = "ROLE_ORG_ADMIN";
+        }
+
+        // Create new user's account with determined role and isEnabled = false (waiting for OTP verify)
         User user = User.builder()
                 .username(signupRequest.getUsername())
                 .email(signupRequest.getEmail())
                 .password(passwordEncoder.encode(signupRequest.getPassword()))
-                .role("ROLE_USER")
+                .role(role)
                 .mobileNumber(signupRequest.getMobileNumber())
                 .age(signupRequest.getAge())
                 .gender(signupRequest.getGender())
                 .isEnabled(false)
+                .organization(organization)
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -87,16 +104,7 @@ public class AuthService {
         OtpToken otpToken = otpTokenService.generateOtp(savedUser, "EMAIL_VERIFICATION");
         emailService.sendVerificationOtp(savedUser.getEmail(), otpToken.getOtp());
 
-        return UserResponse.builder()
-                .id(savedUser.getId())
-                .username(savedUser.getUsername())
-                .email(savedUser.getEmail())
-                .role(savedUser.getRole())
-                .mobileNumber(savedUser.getMobileNumber())
-                .age(savedUser.getAge())
-                .gender(savedUser.getGender())
-                .isEnabled(savedUser.isEnabled())
-                .build();
+        return userService.mapToResponse(savedUser);
     }
 
     @Transactional
@@ -164,6 +172,8 @@ public class AuthService {
                 .role(userDetails.getAuthorities().iterator().next().getAuthority())
                 .avatar(avatar)
                 .avatarUrl(AvatarUtils.getAvatarUrl(user))
+                .organizationName(user != null && user.getOrganization() != null ? user.getOrganization().getName() : null)
+                .isTempPassword(user != null && user.isTempPassword())
                 .build();
     }
 
@@ -236,6 +246,25 @@ public class AuthService {
                 .role(user.getRole())
                 .avatar(user.getAvatar())
                 .avatarUrl(AvatarUtils.getAvatarUrl(user))
+                .organizationName(user.getOrganization() != null ? user.getOrganization().getName() : null)
+                .isTempPassword(user.isTempPassword())
                 .build();
+    }
+
+    @Transactional
+    public UserResponse changeTemporaryPassword(UUID userId, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException("User not found"));
+
+        if (!user.isTempPassword()) {
+            throw new BadRequestException("This account does not have a temporary password set.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setTempPassword(false);
+        user.setEnabled(true); // Account is fully active now!
+        User saved = userRepository.save(user);
+
+        return userService.mapToResponse(saved);
     }
 }

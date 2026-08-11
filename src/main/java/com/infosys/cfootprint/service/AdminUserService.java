@@ -27,6 +27,9 @@ public class AdminUserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private UserService userService;
+
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
                 .filter(user -> !user.getRole().equals("ROLE_ADMIN")) // Only return non-admin users
@@ -59,6 +62,9 @@ public class AdminUserService {
         return mapToResponse(saved);
     }
 
+    @Autowired
+    private com.infosys.cfootprint.repository.OrganizationRepository organizationRepository;
+
     @Transactional
     public void disableUser(UUID userId) {
         User user = userRepository.findById(userId)
@@ -66,6 +72,27 @@ public class AdminUserService {
 
         if (user.getRole().equals("ROLE_ADMIN")) {
             throw new BadRequestException("Cannot disable an administrator account.");
+        }
+
+        if (user.getRole().equals("ROLE_ORG_ADMIN") && user.getOrganization() != null) {
+            com.infosys.cfootprint.model.Organization org = user.getOrganization();
+
+            // Find all users belonging to this organization and convert them to normal users
+            List<User> orgEmployees = userRepository.findAll().stream()
+                    .filter(u -> u.getOrganization() != null && u.getOrganization().getId().equals(org.getId()))
+                    .collect(Collectors.toList());
+
+            for (User emp : orgEmployees) {
+                emp.setOrganization(null);
+                userRepository.save(emp);
+            }
+
+            // Remove org admin's link to org before deleting the org record
+            user.setOrganization(null);
+            userRepository.save(user);
+
+            // Delete the organization
+            organizationRepository.delete(org);
         }
 
         user.setDisabled(true);
@@ -86,16 +113,6 @@ public class AdminUserService {
     }
 
     private UserResponse mapToResponse(User user) {
-        return UserResponse.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .role(user.getRole())
-                .mobileNumber(user.getMobileNumber())
-                .age(user.getAge())
-                .gender(user.getGender())
-                .isEnabled(user.isEnabled())
-                .isDisabled(user.isDisabled())
-                .build();
+        return userService.mapToResponse(user);
     }
 }
